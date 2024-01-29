@@ -1,0 +1,325 @@
+// What pins  are where
+  // updown car lights  
+    const int updown_car_red = 13;
+    const int updown_car_orange = 12;
+    const int updown_car_green = 11;   
+  // leftright car lights
+    const int leftright_car_red = 10;
+    const int leftright_car_orange = 9;
+    const int leftright_car_green = 8;  
+  // updown person lights/button
+    const int updown_person_red = 7;
+    const int updown_person_green = 6;
+    const int updown_person_button = 5;
+    // leftright person lights/button
+    const int leftright_person_red = 4;
+    const int leftright_person_green = 3;
+    const int leftright_person_button = 2;
+
+
+// Assigning Timings (change red/yellow/green at will)
+
+  // Times for the red/yellow/green cycle
+
+    unsigned long redgreen = 5000; // 5s
+    unsigned long redyellow = 3000; // 3s
+    unsigned long redandyellow = 2000; // 2s
+
+    unsigned long person_red = 1000; // 1s
+    unsigned long person_green = 2000; // 2s
+
+  // Timing for traffic lights
+
+    int current_state_traffic = 0;
+    unsigned long previous_time_traffic = 0; // current time
+    unsigned long counted_time_traffic = 0; // counted time
+
+  // Timing for buttons/crossings
+
+    int current_state_person = 'a';
+    unsigned long previous_time_person = 0; // current time
+    unsigned long counted_time_person = 0; // counted time
+
+  // assigning saftey (10s) to button presses
+
+    unsigned long counter_time_button = 0;
+    unsigned long time_at_press = 0;  //assigning an initial state
+    unsigned long saftey = 10000; // 10 seconds
+
+  // button switch case
+
+    bool button_pressed = false; // button not pressed
+
+
+void setup(){
+// Setting parameters
+
+  // updown car lights 
+    pinMode(updown_car_red,OUTPUT);
+    pinMode(updown_car_orange,OUTPUT);
+    pinMode(updown_car_green,OUTPUT);
+
+  // leftright car lights
+    pinMode(leftright_car_red,OUTPUT);
+    pinMode(leftright_car_orange,OUTPUT);
+    pinMode(leftright_car_green,OUTPUT);
+
+  // updown person lights/button
+    pinMode(updown_person_red,OUTPUT);
+    pinMode(updown_person_green,OUTPUT);
+    pinMode(updown_person_button,INPUT_PULLUP);
+
+  // leftright person lights/button
+    pinMode(leftright_person_red,OUTPUT);
+    pinMode(leftright_person_green,OUTPUT);
+    pinMode(leftright_person_button,INPUT_PULLUP); 
+
+
+  digitalWrite(leftright_person_button, HIGH);
+  digitalWrite(updown_person_button, HIGH);
+}
+void loop() {
+// Initial Timers
+
+  int button_state_updown = digitalRead(updown_person_button);
+  int button_state_leftright = digitalRead(leftright_person_button);
+
+  unsigned long counted_time_traffic = millis(); // traffic time
+  unsigned long time_traffic = counted_time_traffic - previous_time_traffic; // delta t traffic
+
+  unsigned long counted_time_person = millis(); // people time
+  unsigned long time_person = counted_time_person - previous_time_person; // delta t person
+
+  unsigned long counted_time_button = millis(); // button time
+  unsigned long working_button = counted_time_button - time_at_press; // delta button press
+
+// Check if button is pressed
+  if (!button_pressed && working_button >= saftey) { // only allow button press if over saftey time
+      if (button_state_updown == LOW || button_state_leftright == LOW) { // if either pressed
+          button_pressed = true; // swap if statment to else
+          time_at_press = millis(); // update time_at_press when the button is pressed
+      }
+  }
+
+if (!button_pressed) { // if button is depressed
+  switch (current_state_traffic){
+
+    case 0: // Red updown / Green leftright
+      digitalWrite(updown_car_red,HIGH); //on
+      digitalWrite(updown_car_orange,LOW);
+      digitalWrite(updown_car_green,LOW);
+      digitalWrite(leftright_car_red,LOW);
+      digitalWrite(leftright_car_orange,LOW);
+      digitalWrite(leftright_car_green,HIGH); //on
+      digitalWrite(updown_person_green,LOW);
+      digitalWrite(updown_person_red,HIGH); // on
+      digitalWrite(leftright_person_green,LOW);
+      digitalWrite(leftright_person_red,HIGH);// on
+
+      if(time_traffic >= redgreen ){
+        previous_time_traffic = counted_time_traffic;
+        current_state_traffic = 1;
+        }
+
+    break;
+
+    case 1:// Red updown / Yellow leftright
+      digitalWrite(updown_car_red,HIGH); // on 
+      digitalWrite(updown_car_orange,LOW); 
+      digitalWrite(updown_car_green,LOW);
+      digitalWrite(leftright_car_red,LOW);
+      digitalWrite(leftright_car_orange,HIGH); // on
+      digitalWrite(leftright_car_green,LOW);
+      digitalWrite(updown_person_green,LOW);
+      digitalWrite(updown_person_red,HIGH); // on
+      digitalWrite(leftright_person_green,LOW);
+      digitalWrite(leftright_person_red,HIGH); // on
+
+      if(time_traffic >= redyellow ){
+        previous_time_traffic = counted_time_traffic; // resets timer
+        current_state_traffic = 2; // switch cases
+        }
+
+    break;
+
+    case 2: // Red+Yellow updown / Red leftright
+      digitalWrite(updown_car_red,HIGH); //on
+      digitalWrite(updown_car_orange,HIGH);//on
+      digitalWrite(updown_car_green,LOW);
+      digitalWrite(leftright_car_red,HIGH); //on
+      digitalWrite(leftright_car_orange,LOW);
+      digitalWrite(leftright_car_green,LOW); 
+      digitalWrite(updown_person_green,LOW);
+      digitalWrite(updown_person_red,HIGH); //on
+      digitalWrite(leftright_person_green,LOW);
+      digitalWrite(leftright_person_red,HIGH); //on
+
+      if(time_traffic >= redandyellow ){
+        previous_time_traffic = counted_time_traffic;
+        current_state_traffic = 3;
+        }
+
+    break;
+
+    case 3: // Green updown / Red leftright
+      digitalWrite(updown_car_red,LOW); 
+      digitalWrite(updown_car_orange,LOW);
+      digitalWrite(updown_car_green,HIGH); //on
+      digitalWrite(leftright_car_red,HIGH); // on
+      digitalWrite(leftright_car_orange,LOW);
+      digitalWrite(leftright_car_green,LOW); 
+      digitalWrite(updown_person_green,LOW);
+      digitalWrite(updown_person_red,HIGH); // on
+      digitalWrite(leftright_person_green,LOW);
+      digitalWrite(leftright_person_red,HIGH); //on
+
+      if(time_traffic >= redgreen ){
+        previous_time_traffic = counted_time_traffic;
+        current_state_traffic = 4;
+        }
+
+    break;
+
+    case 4: // Yellow updown / Red leftright
+      digitalWrite(updown_car_red,LOW); 
+      digitalWrite(updown_car_orange,HIGH); //on
+      digitalWrite(updown_car_green,LOW);
+      digitalWrite(leftright_car_red,HIGH); //on
+      digitalWrite(leftright_car_orange,LOW);
+      digitalWrite(leftright_car_green,LOW); 
+      digitalWrite(updown_person_green,LOW);
+      digitalWrite(updown_person_red,HIGH); // on
+      digitalWrite(leftright_person_green,LOW);
+      digitalWrite(leftright_person_red,HIGH); // on
+
+      if(time_traffic >= redyellow ){
+        previous_time_traffic = counted_time_traffic;
+        current_state_traffic = 5;
+        }
+
+    break;
+
+    case 5: // Red updown / Red+Yellow leftright
+      digitalWrite(updown_car_red,HIGH); // on
+      digitalWrite(updown_car_orange,LOW);
+      digitalWrite(updown_car_green,LOW);
+      digitalWrite(leftright_car_red,HIGH); //on
+      digitalWrite(leftright_car_orange,HIGH);//on
+      digitalWrite(leftright_car_green,LOW); 
+      digitalWrite(updown_person_green,LOW);
+      digitalWrite(updown_person_red,HIGH);//on
+      digitalWrite(leftright_person_green,LOW);
+      digitalWrite(leftright_person_red,HIGH); //on
+
+      if(time_traffic >= redandyellow ){
+        previous_time_traffic = counted_time_traffic;
+        current_state_traffic = 0;
+        }
+
+    break;
+  }
+} else { // if button is pressed
+  switch(current_state_person){
+
+    case 'e': // there so that the loop works right, likes having an initial state of nothing
+      previous_time_person = counted_time_person;
+      current_state_person = 'a';
+    break;
+
+    case 'a': //tells cars to stop
+      if(current_state_traffic == 0 || current_state_traffic == 1 || current_state_traffic ==5){ // 0 1 5
+
+          digitalWrite(updown_car_red,HIGH);
+          digitalWrite(updown_car_orange,LOW);
+          digitalWrite(updown_car_green,LOW);
+          digitalWrite(leftright_car_red,LOW);
+          digitalWrite(leftright_car_orange,HIGH);
+          digitalWrite(leftright_car_green,LOW);
+          digitalWrite(updown_person_green,LOW);
+          digitalWrite(updown_person_red,HIGH);
+          digitalWrite(leftright_person_green,LOW);
+          digitalWrite(leftright_person_red,HIGH);
+
+      } else { //2 3 4
+
+          digitalWrite(updown_car_red,LOW);
+          digitalWrite(updown_car_orange,HIGH);
+          digitalWrite(updown_car_green,LOW);
+          digitalWrite(leftright_car_red,HIGH);
+          digitalWrite(leftright_car_orange,LOW);
+          digitalWrite(leftright_car_green,LOW);
+          digitalWrite(updown_person_green,LOW);
+          digitalWrite(updown_person_red,HIGH);
+          digitalWrite(leftright_person_green,LOW);
+          digitalWrite(leftright_person_red,HIGH);
+      }
+          if(time_person >= person_red ){ // if time goes over set amout
+            previous_time_person = counted_time_person;// reset timer
+            current_state_person = 'b'; // switch states
+          }
+
+    break;
+
+    case 'b': // tells people to go (green)
+      digitalWrite(updown_car_red,HIGH);
+      digitalWrite(updown_car_orange,LOW);
+      digitalWrite(updown_car_green,LOW);
+      digitalWrite(leftright_car_red,HIGH);
+      digitalWrite(leftright_car_orange,LOW);
+      digitalWrite(leftright_car_green,LOW);
+      digitalWrite(updown_person_green,HIGH);
+      digitalWrite(updown_person_red,LOW);
+      digitalWrite(leftright_person_green,HIGH);
+      digitalWrite(leftright_person_red,LOW);
+
+      if(time_person >= person_green ){
+        previous_time_person = counted_time_person;
+        current_state_person = 'c';
+        }
+
+    break;
+
+    case 'c': // tells people to hurry and turns on yellow light for cars
+    
+      if(current_state_traffic == 0 || current_state_traffic == 4 || current_state_traffic == 5){ // 0 4 5
+
+          digitalWrite(updown_car_red,HIGH);
+          digitalWrite(updown_car_orange,LOW);
+          digitalWrite(updown_car_green,LOW);
+          digitalWrite(leftright_car_red,HIGH);
+          digitalWrite(leftright_car_orange,HIGH);
+          digitalWrite(leftright_car_green,LOW);
+          digitalWrite(updown_person_green,LOW);
+          digitalWrite(updown_person_red,HIGH);
+          digitalWrite(leftright_person_green,LOW);
+          digitalWrite(leftright_person_red,HIGH);
+
+      } else { //1 2 3
+
+          digitalWrite(updown_car_red,HIGH);
+          digitalWrite(updown_car_orange,HIGH);
+          digitalWrite(updown_car_green,LOW);
+          digitalWrite(leftright_car_red,HIGH);
+          digitalWrite(leftright_car_orange,LOW);
+          digitalWrite(leftright_car_green,LOW);
+          digitalWrite(updown_person_green,LOW);
+          digitalWrite(updown_person_red,HIGH);
+          digitalWrite(leftright_person_green,LOW);
+          digitalWrite(leftright_person_red,HIGH);
+
+      }
+
+          if(time_person >= person_red ){
+            previous_time_person = counted_time_person;
+            current_state_person = 'd';
+            }
+
+    break;
+
+    case 'd':
+      current_state_person = 'e';
+      button_pressed = false; // sets button state to depressed
+    break;
+    }
+  }
+}
